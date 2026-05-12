@@ -55,6 +55,9 @@ export function parseExcelPaste(pasteData: string): Partial<LogisticsItem>[] {
     const dataChegada = columns[11]?.trim() || columns[5]?.trim() || '';
     const status = columns[15]?.trim() || columns[columns.length - 1]?.trim() || 'Em Trânsito';
     
+    // Ignorar registros com status "Descarga Finalizada"
+    if (status.toLowerCase().includes('descarga finalizada')) continue;
+    
     if (!fornecedor) continue;
     
     const aging = calculateAging(dataChegada) || Math.floor(Math.random() * 30) + 1;
@@ -89,6 +92,9 @@ export function parseCSVData(results: { data: string[][] }): Partial<LogisticsIt
     const destino = row[4]?.trim() || row[2]?.trim() || '';
     const dataChegada = row[11]?.trim() || row[5]?.trim() || '';
     const status = row[15]?.trim() || row[row.length - 1]?.trim() || 'Em Trânsito';
+    
+    // Ignorar registros com status "Descarga Finalizada"
+    if (status.toLowerCase().includes('descarga finalizada')) continue;
     
     if (!fornecedor) continue;
     
@@ -131,6 +137,9 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
     const destino = row[4]?.toString().trim() || row[2]?.toString().trim() || '';
     const dataChegada = row[11]?.toString().trim() || row[5]?.toString().trim() || '';
     const status = row[15]?.toString().trim() || row[row.length - 1]?.toString().trim() || 'Em Trânsito';
+    
+    // Ignorar registros com status "Descarga Finalizada"
+    if (status.toLowerCase().includes('descarga finalizada')) continue;
     
     if (!fornecedor) continue;
     

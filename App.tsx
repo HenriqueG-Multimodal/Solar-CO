@@ -326,15 +326,18 @@ export default function App() {
       </AnimatePresence>
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <header className="bg-slate-900 border-b border-slate-700 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-lg">
-              <Truck className="text-white w-6 h-6" />
-            </div>
+          <div className="flex items-center gap-4">
+            <img 
+              src="/logo.png" 
+              alt="Uniap Multimodal" 
+              className="h-10 w-auto"
+            />
+            <div className="h-8 w-px bg-slate-700" />
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-800">Inbound Radar</h1>
-              <p className="text-xs text-slate-500 font-medium">Gestão de Pátio & Chegadas</p>
+              <h1 className="text-lg font-bold tracking-tight text-white">Inbound Radar</h1>
+              <p className="text-xs text-slate-400 font-medium">Gestão de Pátio & Chegadas</p>
             </div>
           </div>
           

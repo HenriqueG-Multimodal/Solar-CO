@@ -658,12 +658,13 @@ export default function App() {
                       data={chartDataStatus}
                       cx="50%"
                       cy="50%"
-                      innerRadius={80}
-                      outerRadius={110}
+                      innerRadius={60}
+                      outerRadius={90}
                       paddingAngle={5}
                       dataKey="value"
-                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      label={({ name, value, percent }) => `${value} (${(percent * 100).toFixed(0)}%)`}
                       labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
+                      fontSize={9}
                     >
                       {chartDataStatus.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />

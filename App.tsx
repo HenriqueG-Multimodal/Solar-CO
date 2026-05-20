@@ -49,6 +49,7 @@ export default function App() {
   // Convert DB format to App format
   const dbToApp = (dbItem: LogisticsItemDB): LogisticsItem => ({
     id: dbItem.id,
+    nf: dbItem.nf || undefined,
     fornecedor: dbItem.fornecedor,
     regiao: dbItem.regiao,
     status: dbItem.status,
@@ -61,6 +62,7 @@ export default function App() {
   // Convert App format to DB format
   const appToDb = (item: LogisticsItem): LogisticsItemDB => ({
     id: item.id,
+    nf: item.nf || null,
     fornecedor: item.fornecedor,
     regiao: item.regiao,
     status: item.status,
@@ -585,6 +587,7 @@ export default function App() {
                   <thead className="sticky top-0 z-10">
                     <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-white">
                       <th className="px-4 py-3 border-b">Container</th>
+                      <th className="px-4 py-3 border-b">NF</th>
                       <th className="px-4 py-3 border-b">Fornecedor</th>
                       <th className="px-4 py-3 border-b">Destino</th>
                       <th className="px-4 py-3 border-b text-center">Dia de Carregamento</th>
@@ -601,6 +604,9 @@ export default function App() {
                           <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                             <td className="px-4 py-3">
                               <span className="font-mono text-xs font-bold text-slate-700">{item.id.split('-')[0] || item.id}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-xs text-slate-600">{item.nf || '-'}</span>
                             </td>
                             <td className="px-4 py-3">
                               <span className="text-xs font-semibold text-slate-600 uppercase">{item.fornecedor}</span>
@@ -633,7 +639,7 @@ export default function App() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center">
+                        <td colSpan={8} className="px-4 py-8 text-center">
                           <div className="flex flex-col items-center justify-center opacity-40">
                             <Package className="w-8 h-8 mb-2" />
                             <p className="text-xs font-bold uppercase tracking-widest">Tudo em dia!</p>
@@ -868,6 +874,7 @@ export default function App() {
                 <thead>
                   <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b bg-slate-50/50">
                     <th className="px-8 py-4">ID / Container</th>
+                    <th className="px-8 py-4">NF</th>
                     <th className="px-8 py-4">Fornecedor</th>
                     <th className="px-8 py-4">Destino</th>
                     <th className="px-8 py-4">Status</th>
@@ -880,6 +887,9 @@ export default function App() {
                     <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-8 py-4 text-xs font-mono font-medium text-slate-400">
                         {item.id.split('-')[0]}
+                      </td>
+                      <td className="px-8 py-4 text-xs text-slate-500">
+                        {item.nf || '-'}
                       </td>
                       <td className="px-8 py-4 text-sm font-bold text-slate-700">
                         {item.fornecedor}
@@ -915,7 +925,7 @@ export default function App() {
                   ))}
                   {filteredData.length > 50 && (
                     <tr>
-                      <td colSpan={6} className="px-8 py-6 text-center text-sm text-slate-400 italic bg-slate-50/30">
+                      <td colSpan={7} className="px-8 py-6 text-center text-sm text-slate-400 italic bg-slate-50/30">
                         Mostrando os primeiros 50 registros de {filteredData.length}. Use os filtros no topo para refinar sua busca.
                       </td>
                     </tr>

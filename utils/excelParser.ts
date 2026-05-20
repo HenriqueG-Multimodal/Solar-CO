@@ -101,6 +101,7 @@ function extractFornecedorRegiao(rawOrigem: string, rawDestino: string = '') {
 function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<LogisticsItem> | null {
   const rawFornecedor = String(row[0] || '').trim();
   const container = String(row[1] || '').trim();
+  const nf = String(row[3] || '').trim(); // Coluna D (índice 3) = NF
   const rawDestino = String(row[4] || '').trim();
   const rawStatus = String(row[15] || '').trim();
   const rawDateChegada = row[11];
@@ -144,6 +145,7 @@ function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<Lo
 
   return {
     id: container || `${Math.random()}-${Date.now()}`,
+    nf: nf || undefined,
     fornecedor, 
     regiao: regiao || 'DIVERSOS',
     status: rawStatus || 'Em Trânsito', 

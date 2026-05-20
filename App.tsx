@@ -582,7 +582,7 @@ export default function App() {
                 <span className="text-xs text-slate-500">{criticalItems.length} itens críticos</span>
               </div>
               
-              <div className="p-0 overflow-x-auto max-h-[400px] overflow-y-auto">
+              <div className="p-0 overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-10">
                     <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-white">
@@ -598,7 +598,7 @@ export default function App() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {criticalItems.length > 0 ? (
-                      criticalItems.slice(0, 15).map(item => {
+                      criticalItems.map(item => {
                         const acao = getAcaoSugerida(item.aging);
                         return (
                           <tr key={item.id} className="hover:bg-slate-50 transition-colors">
@@ -650,14 +650,6 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
-              
-              {criticalItems.length > 15 && (
-                <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50">
-                  <p className="text-xs text-slate-500 text-center">
-                    Exibindo 15 de {criticalItems.length} itens críticos
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 

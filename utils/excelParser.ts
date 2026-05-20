@@ -98,15 +98,15 @@ function extractFornecedorRegiao(rawOrigem: string, rawDestino: string = '') {
 /**
  * Processa uma linha individual (Formato Detalhado)
  */
-function processDetailedRow(row: any[], dataColetaIndex: number = -1): Partial<LogisticsItem> | null {
+function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<LogisticsItem> | null {
   const rawFornecedor = String(row[0] || '').trim();
   const container = String(row[1] || '').trim();
   const rawDestino = String(row[4] || '').trim();
   const rawStatus = String(row[15] || '').trim();
   const rawDateChegada = row[11];
   
-  // Usar índice detectado ou tentar posições comuns
-  const rawDataColeta = dataColetaIndex >= 0 ? row[dataColetaIndex] : (row[12] || row[13] || '');
+  // Coluna H (índice 7) = COLETADO
+  const rawDataColeta = row[dataColetaIndex] || row[7] || '';
 
   // Ignora se for o cabeçalho exato ou se a linha estiver totalmente vazia
   if (rawFornecedor.toLowerCase() === 'fornecedor' || (!rawFornecedor && !container)) return null;
@@ -206,11 +206,11 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
     const headerString = String(headerRow.join('') || '').toLowerCase();
     const isDetailed = rows.length > 0 && (headerRow.length > 10 || headerString.includes('status') || headerString.includes('container') || headerString.includes('booking'));
 
-    // Detectar índice da coluna "DATA DE COLETA" dinamicamente
-    let dataColetaIndex = -1;
+    // Coluna H (índice 7) = COLETADO - também detecta dinamicamente se houver cabeçalho diferente
+    let dataColetaIndex = 7; // Padrão: coluna H
     for (let i = 0; i < headerRow.length; i++) {
       const colName = String(headerRow[i]).toLowerCase().trim();
-      if (colName.includes('data') && colName.includes('coleta')) {
+      if (colName === 'coletado' || (colName.includes('data') && colName.includes('coleta'))) {
         dataColetaIndex = i;
         break;
       }

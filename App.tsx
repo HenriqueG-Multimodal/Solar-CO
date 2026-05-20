@@ -591,7 +591,7 @@ export default function App() {
                       <th className="px-4 py-3 border-b">Fornecedor</th>
                       <th className="px-4 py-3 border-b">Destino</th>
                       <th className="px-4 py-3 border-b text-center">Dia de Carregamento</th>
-                      <th className="px-4 py-3 border-b text-center">Dias de Porto</th>
+                      <th className="px-4 py-3 border-b text-center">Chegada Porto</th>
                       <th className="px-4 py-3 border-b text-center">Aging</th>
                       <th className="px-4 py-3 border-b text-center">Ação</th>
                     </tr>

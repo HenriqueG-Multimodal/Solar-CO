@@ -98,32 +98,15 @@ function extractFornecedorRegiao(rawOrigem: string, rawDestino: string = '') {
 /**
  * Processa uma linha individual (Formato Detalhado)
  */
-function processDetailedRow(row: any[]): Partial<LogisticsItem> | null {
+function processDetailedRow(row: any[], dataColetaIndex: number = -1): Partial<LogisticsItem> | null {
   const rawFornecedor = String(row[0] || '').trim();
   const container = String(row[1] || '').trim();
   const rawDestino = String(row[4] || '').trim();
   const rawStatus = String(row[15] || '').trim();
   const rawDateChegada = row[11];
   
-  // Tentar encontrar data de coleta em diferentes colunas possíveis
-  // Coluna 12 (M), 13 (N), 6 (G), 7 (H) são posições comuns
-  const rawDataColeta = row[12] || row[13] || row[6] || row[7] || '';
-
-  // Debug: mostrar estrutura da linha para identificar colunas
-  if (container && container.length > 5) {
-    console.log("[v0] Row data:", {
-      col0_fornecedor: row[0],
-      col1_container: row[1],
-      col4_destino: row[4],
-      col6: row[6],
-      col7: row[7],
-      col11_chegada: row[11],
-      col12: row[12],
-      col13: row[13],
-      col15_status: row[15],
-      totalCols: row.length
-    });
-  }
+  // Usar índice detectado ou tentar posições comuns
+  const rawDataColeta = dataColetaIndex >= 0 ? row[dataColetaIndex] : (row[12] || row[13] || '');
 
   // Ignora se for o cabeçalho exato ou se a linha estiver totalmente vazia
   if (rawFornecedor.toLowerCase() === 'fornecedor' || (!rawFornecedor && !container)) return null;
@@ -219,8 +202,19 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
     let lastSeenRegiao = '';
     
     // Detectar formato: Detailed tem muitas colunas
-    const headerRow = String(rows[0]?.join('') || '').toLowerCase();
-    const isDetailed = rows.length > 0 && (rows[0].length > 10 || headerRow.includes('status') || headerRow.includes('container') || headerRow.includes('booking'));
+    const headerRow = rows[0] || [];
+    const headerString = String(headerRow.join('') || '').toLowerCase();
+    const isDetailed = rows.length > 0 && (headerRow.length > 10 || headerString.includes('status') || headerString.includes('container') || headerString.includes('booking'));
+
+    // Detectar índice da coluna "DATA DE COLETA" dinamicamente
+    let dataColetaIndex = -1;
+    for (let i = 0; i < headerRow.length; i++) {
+      const colName = String(headerRow[i]).toLowerCase().trim();
+      if (colName.includes('data') && colName.includes('coleta')) {
+        dataColetaIndex = i;
+        break;
+      }
+    }
 
     rows.forEach((row) => {
       if (!row || row.length < 2) return;
@@ -231,7 +225,7 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
       if (firstCell.includes('total geral')) return;
 
       if (isDetailed) {
-        const item = processDetailedRow(row);
+        const item = processDetailedRow(row, dataColetaIndex);
         if (item) {
           // Lógica de Preenchimento para Células Mescladas
           if (item.fornecedor === '') {

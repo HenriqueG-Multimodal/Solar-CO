@@ -31,7 +31,8 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend 
+  Legend,
+  LabelList
 } from 'recharts';
 import Papa from 'papaparse';
 import { RAW_DATA, LogisticsItem } from './data';
@@ -676,6 +677,8 @@ export default function App() {
                       outerRadius={110}
                       paddingAngle={5}
                       dataKey="value"
+                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
                     >
                       {chartDataStatus.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
@@ -714,7 +717,13 @@ export default function App() {
                       cursor={{ fill: '#f8fafc' }}
                       contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={20} />
+                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={20}>
+                      <LabelList 
+                        dataKey="value" 
+                        position="right" 
+                        style={{ fontSize: 11, fontWeight: 'bold', fill: '#334155' }}
+                      />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

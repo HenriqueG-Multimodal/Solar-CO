@@ -104,7 +104,26 @@ function processDetailedRow(row: any[]): Partial<LogisticsItem> | null {
   const rawDestino = String(row[4] || '').trim();
   const rawStatus = String(row[15] || '').trim();
   const rawDateChegada = row[11];
-  const rawDataColeta = row[12]; // Data de coleta geralmente está na coluna 12
+  
+  // Tentar encontrar data de coleta em diferentes colunas possíveis
+  // Coluna 12 (M), 13 (N), 6 (G), 7 (H) são posições comuns
+  const rawDataColeta = row[12] || row[13] || row[6] || row[7] || '';
+
+  // Debug: mostrar estrutura da linha para identificar colunas
+  if (container && container.length > 5) {
+    console.log("[v0] Row data:", {
+      col0_fornecedor: row[0],
+      col1_container: row[1],
+      col4_destino: row[4],
+      col6: row[6],
+      col7: row[7],
+      col11_chegada: row[11],
+      col12: row[12],
+      col13: row[13],
+      col15_status: row[15],
+      totalCols: row.length
+    });
+  }
 
   // Ignora se for o cabeçalho exato ou se a linha estiver totalmente vazia
   if (rawFornecedor.toLowerCase() === 'fornecedor' || (!rawFornecedor && !container)) return null;

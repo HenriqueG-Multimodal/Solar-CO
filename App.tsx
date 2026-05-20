@@ -370,8 +370,14 @@ export default function App() {
           <div className="flex items-center gap-4">
             <img 
               src="/logo.png" 
-              alt="Uniap Multimodal" 
+              alt="União Multimodal" 
               className="h-10 w-auto"
+            />
+            <div className="h-8 w-px bg-slate-700" />
+            <img 
+              src="/logo-solar.png" 
+              alt="Solar BR Coca-Cola" 
+              className="h-10 w-auto bg-white rounded px-2 py-1"
             />
             <div className="h-8 w-px bg-slate-700" />
             <div>

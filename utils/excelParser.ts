@@ -98,13 +98,15 @@ function extractFornecedorRegiao(rawOrigem: string, rawDestino: string = '') {
 /**
  * Processa uma linha individual (Formato Detalhado)
  */
-function processDetailedRow(row: any[]): Partial<LogisticsItem> | null {
+function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<LogisticsItem> | null {
   const rawFornecedor = String(row[0] || '').trim();
   const container = String(row[1] || '').trim();
   const rawDestino = String(row[4] || '').trim();
   const rawStatus = String(row[15] || '').trim();
   const rawDateChegada = row[11];
-  const rawDataColeta = row[12]; // Data de coleta geralmente está na coluna 12
+  
+  // Coluna H (índice 7) = COLETADO
+  const rawDataColeta = row[dataColetaIndex] || row[7] || '';
 
   // Ignora se for o cabeçalho exato ou se a linha estiver totalmente vazia
   if (rawFornecedor.toLowerCase() === 'fornecedor' || (!rawFornecedor && !container)) return null;
@@ -200,8 +202,19 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
     let lastSeenRegiao = '';
     
     // Detectar formato: Detailed tem muitas colunas
-    const headerRow = String(rows[0]?.join('') || '').toLowerCase();
-    const isDetailed = rows.length > 0 && (rows[0].length > 10 || headerRow.includes('status') || headerRow.includes('container') || headerRow.includes('booking'));
+    const headerRow = rows[0] || [];
+    const headerString = String(headerRow.join('') || '').toLowerCase();
+    const isDetailed = rows.length > 0 && (headerRow.length > 10 || headerString.includes('status') || headerString.includes('container') || headerString.includes('booking'));
+
+    // Coluna H (índice 7) = COLETADO - também detecta dinamicamente se houver cabeçalho diferente
+    let dataColetaIndex = 7; // Padrão: coluna H
+    for (let i = 0; i < headerRow.length; i++) {
+      const colName = String(headerRow[i]).toLowerCase().trim();
+      if (colName === 'coletado' || (colName.includes('data') && colName.includes('coleta'))) {
+        dataColetaIndex = i;
+        break;
+      }
+    }
 
     rows.forEach((row) => {
       if (!row || row.length < 2) return;
@@ -212,7 +225,7 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
       if (firstCell.includes('total geral')) return;
 
       if (isDetailed) {
-        const item = processDetailedRow(row);
+        const item = processDetailedRow(row, dataColetaIndex);
         if (item) {
           // Lógica de Preenchimento para Células Mescladas
           if (item.fornecedor === '') {

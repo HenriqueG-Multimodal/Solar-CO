@@ -17,7 +17,9 @@ import {
   FileText,
   PieChart as PieChartIcon,
   TrendingUp,
-  LayoutDashboard
+  LayoutDashboard,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -37,31 +39,70 @@ import {
 import Papa from 'papaparse';
 import { RAW_DATA, LogisticsItem } from './data';
 import { parseExcelPaste, parseCSVData, parseExcelFile } from './utils/excelParser';
-
-const STORAGE_KEY = 'inbound-radar-data';
+import { fetchLogisticsItems, saveLogisticsItems, clearLogisticsItems, LogisticsItemDB } from './lib/supabase';
 
 export default function App() {
-  // Inicializa com dados do localStorage ou RAW_DATA como fallback
-  const [data, setData] = useState<LogisticsItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return RAW_DATA;
-        }
-      }
-    }
-    return RAW_DATA;
-  });
+  const [data, setData] = useState<LogisticsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
-  // Salva dados no localStorage sempre que mudam
+  // Convert DB format to App format
+  const dbToApp = (dbItem: LogisticsItemDB): LogisticsItem => ({
+    id: dbItem.id,
+    fornecedor: dbItem.fornecedor,
+    regiao: dbItem.regiao,
+    status: dbItem.status,
+    aging: dbItem.aging,
+    agingBucket: dbItem.aging_bucket as LogisticsItem['agingBucket'],
+    dataColeta: dbItem.data_coleta || undefined,
+  });
+
+  // Convert App format to DB format
+  const appToDb = (item: LogisticsItem): LogisticsItemDB => ({
+    id: item.id,
+    fornecedor: item.fornecedor,
+    regiao: item.regiao,
+    status: item.status,
+    aging: item.aging,
+    aging_bucket: item.agingBucket,
+    data_coleta: item.dataColeta || null,
+  });
+
+  // Load data from Supabase on mount
   useEffect(() => {
-    if (data.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const items = await fetchLogisticsItems();
+      if (items.length > 0) {
+        setData(items.map(dbToApp));
+      } else {
+        setData(RAW_DATA);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setData(RAW_DATA);
+    } finally {
+      setIsLoading(false);
     }
-  }, [data]);
+  };
+
+  // Save data to Supabase
+  const saveData = async (newData: LogisticsItem[]) => {
+    setIsSaving(true);
+    try {
+      const dbItems = newData.map(appToDb);
+      await saveLogisticsItems(dbItems);
+      setData(newData);
+    } catch (error) {
+      console.error('Error saving data:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   const [selectedFornecedor, setSelectedFornecedor] = useState<string>('Todos');
   const [selectedRegiao, setSelectedRegiao] = useState<string>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -192,11 +233,11 @@ export default function App() {
 
   const CHART_COLORS = ['#4f46e5', '#f59e0b', '#10b981', '#64748b', '#ec4899', '#8b5cf6'];
 
-  const handleImport = () => {
+  const handleImport = async () => {
     if (!pasteData.trim()) return;
     const parsed = parseExcelPaste(pasteData);
     if (parsed.length > 0) {
-      setData(parsed as LogisticsItem[]);
+      await saveData(parsed as LogisticsItem[]);
       setShowImport(false);
       setPasteData('');
       setSelectedFornecedor('Todos');
@@ -207,7 +248,7 @@ export default function App() {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -215,10 +256,10 @@ export default function App() {
       Papa.parse(file, {
         header: false,
         skipEmptyLines: true,
-        complete: (results) => {
+        complete: async (results) => {
           const parsed = parseCSVData(results);
           if (parsed.length > 0) {
-            setData(parsed as LogisticsItem[]); 
+            await saveData(parsed as LogisticsItem[]); 
             setShowImport(false);
             setSelectedFornecedor('Todos');
             setSelectedRegiao('Todos');
@@ -234,13 +275,13 @@ export default function App() {
       });
     } else {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const buffer = e.target?.result;
         if (buffer instanceof ArrayBuffer) {
           try {
             const parsed = parseExcelFile(buffer);
             if (parsed.length > 0) {
-              setData(parsed as LogisticsItem[]);
+              await saveData(parsed as LogisticsItem[]);
               setShowImport(false);
               setSelectedFornecedor('Todos');
               setSelectedRegiao('Todos');
@@ -260,6 +301,24 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+            <p className="text-sm font-medium text-slate-600">Loading...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Saving Indicator */}
+      {isSaving && (
+        <div className="fixed top-4 right-4 z-[60] bg-indigo-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-medium">Saving...</span>
+        </div>
+      )}
+
       {/* Import Modal */}
       <AnimatePresence>
         {showImport && (
@@ -444,10 +503,10 @@ export default function App() {
           </button>
 
           <button 
-            onClick={() => { 
+            onClick={async () => { 
               if (confirm('Deseja limpar os dados salvos e voltar aos dados de exemplo?')) {
-                localStorage.removeItem(STORAGE_KEY);
-                setData(RAW_DATA);
+                await clearLogisticsItems();
+                await saveData(RAW_DATA);
                 setSelectedFornecedor('Todos');
                 setSelectedRegiao('Todos');
               }
@@ -455,6 +514,15 @@ export default function App() {
             className="text-xs font-medium text-red-500 hover:text-red-700"
           >
             Resetar dados
+          </button>
+
+          <button 
+            onClick={loadData}
+            disabled={isLoading}
+            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+          >
+            <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
           </button>
         </div>
 

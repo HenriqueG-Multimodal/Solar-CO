@@ -120,13 +120,29 @@ export default function App() {
     const targetRegioes = selectedRegiao === 'Todos' ? regioes.filter(r => r !== 'Todos') : [selectedRegiao];
     
     targetRegioes.forEach(reg => {
+      const itemsInRegion = filteredData.filter(i => i.regiao === reg);
+      const maxAging = itemsInRegion.length > 0 ? Math.max(...itemsInRegion.map(i => i.aging)) : 0;
+      
       result[reg] = {
         'Ag. Agenda': filteredData.filter(i => i.regiao === reg && categorizeStatus(i.status) === 'Ag. Agenda').length,
         'Veículo na Unidade': filteredData.filter(i => i.regiao === reg && categorizeStatus(i.status) === 'Veículo na Unidade').length,
+        'maxAging': maxAging,
       };
     });
     return result;
   }, [filteredData, regioes, selectedRegiao]);
+
+  // Função para determinar a ação sugerida baseada no aging máximo
+  const getAcaoSugerida = (maxAging: number) => {
+    if (maxAging > 15) {
+      return { label: 'Ação Imediata', style: 'bg-red-100 text-red-700 border-red-200' };
+    } else if (maxAging >= 10) {
+      return { label: 'Crítico', style: 'bg-orange-100 text-orange-700 border-orange-200' };
+    } else if (maxAging >= 5) {
+      return { label: 'Atenção', style: 'bg-amber-100 text-amber-700 border-amber-200' };
+    }
+    return { label: 'Fluxo Normal', style: 'bg-slate-100 text-slate-500 border-slate-200' };
+  };
 
   const criticalItems = useMemo(() => {
     return filteredData
@@ -510,11 +526,14 @@ export default function App() {
                           {counts['Veículo na Unidade']}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          {counts['Ag. Agenda'] > 5 ? (
-                            <span className="text-[10px] bg-red-50 text-red-600 font-bold px-2 py-1 rounded-full uppercase">Cobrar Fornecedor</span>
-                          ) : (
-                            <span className="text-[10px] bg-slate-100 text-slate-400 font-bold px-2 py-1 rounded-full uppercase">Fluxo Normal</span>
-                          )}
+                          {(() => {
+                            const acao = getAcaoSugerida(counts['maxAging']);
+                            return (
+                              <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase border ${acao.style}`}>
+                                {acao.label}
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))}

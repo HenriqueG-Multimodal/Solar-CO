@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Truck, 
   Clock, 
@@ -37,8 +37,30 @@ import Papa from 'papaparse';
 import { RAW_DATA, LogisticsItem } from './data';
 import { parseExcelPaste, parseCSVData, parseExcelFile } from './utils/excelParser';
 
+const STORAGE_KEY = 'inbound-radar-data';
+
 export default function App() {
-  const [data, setData] = useState<LogisticsItem[]>(RAW_DATA);
+  // Inicializa com dados do localStorage ou RAW_DATA como fallback
+  const [data, setData] = useState<LogisticsItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return RAW_DATA;
+        }
+      }
+    }
+    return RAW_DATA;
+  });
+  
+  // Salva dados no localStorage sempre que mudam
+  useEffect(() => {
+    if (data.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+  }, [data]);
   const [selectedFornecedor, setSelectedFornecedor] = useState<string>('Todos');
   const [selectedRegiao, setSelectedRegiao] = useState<string>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -396,6 +418,20 @@ export default function App() {
             className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
           >
             Limpar filtros
+          </button>
+
+          <button 
+            onClick={() => { 
+              if (confirm('Deseja limpar os dados salvos e voltar aos dados de exemplo?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                setData(RAW_DATA);
+                setSelectedFornecedor('Todos');
+                setSelectedRegiao('Todos');
+              }
+            }}
+            className="text-xs font-medium text-red-500 hover:text-red-700"
+          >
+            Resetar dados
           </button>
         </div>
 

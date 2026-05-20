@@ -587,8 +587,8 @@ export default function App() {
                       <th className="px-4 py-3 border-b">Container</th>
                       <th className="px-4 py-3 border-b">Fornecedor</th>
                       <th className="px-4 py-3 border-b">Destino</th>
-                      <th className="px-4 py-3 border-b text-center">Coleta</th>
-                      <th className="px-4 py-3 border-b text-center">Chegada</th>
+                      <th className="px-4 py-3 border-b text-center">Dia de Carregamento</th>
+                      <th className="px-4 py-3 border-b text-center">Dias de Porto</th>
                       <th className="px-4 py-3 border-b text-center">Aging</th>
                       <th className="px-4 py-3 border-b text-center">Ação</th>
                     </tr>
@@ -770,20 +770,20 @@ export default function App() {
                     <YAxis 
                       dataKey="name" 
                       type="category" 
-                      width={120} 
+                      width={100} 
                       axisLine={false} 
                       tickLine={false}
-                      tick={{ fontSize: 10, fontWeight: 'bold', fill: '#64748b' }}
+                      tick={{ fontSize: 8, fontWeight: 'bold', fill: '#64748b' }}
                     />
                     <Tooltip 
                       cursor={{ fill: '#f8fafc' }}
                       contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={20}>
+                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={16}>
                       <LabelList 
                         dataKey="value" 
                         position="right" 
-                        style={{ fontSize: 11, fontWeight: 'bold', fill: '#334155' }}
+                        style={{ fontSize: 9, fontWeight: 'bold', fill: '#334155' }}
                       />
                     </Bar>
                   </BarChart>

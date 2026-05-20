@@ -493,150 +493,88 @@ export default function App() {
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Heatmap Matrix */}
+          {/* Próximas Ações (Aging) - Expandido */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-indigo-600" />
-                  Radar de Operação por Região
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  Próximas Ações (Aging)
                 </h3>
+                <span className="text-xs text-slate-500">{criticalItems.length} itens críticos</span>
               </div>
               
-              <div className="p-0 overflow-x-auto">
+              <div className="p-0 overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      <th className="px-6 py-4 bg-white sticky left-0 z-10 border-b">Região / Porto</th>
-                      <th className="px-6 py-4 text-center border-b">Aguardando Agenda</th>
-                      <th className="px-6 py-4 text-center border-b">Veículo no Pátio</th>
-                      <th className="px-6 py-4 text-center border-b">Ação Sugerida</th>
+                  <thead className="sticky top-0 z-10">
+                    <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-white">
+                      <th className="px-4 py-3 border-b">Container</th>
+                      <th className="px-4 py-3 border-b">Fornecedor</th>
+                      <th className="px-4 py-3 border-b">Destino</th>
+                      <th className="px-4 py-3 border-b text-center">Data Coleta</th>
+                      <th className="px-4 py-3 border-b text-center">Aging</th>
+                      <th className="px-4 py-3 border-b text-center">Ação</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {Object.entries(matrixData).map(([reg, counts]) => (
-                      <tr key={reg} className="hover:bg-slate-50 transition-colors group">
-                        <td className="px-6 py-4 font-bold text-slate-700 bg-white group-hover:bg-slate-50 sticky left-0 z-10">
-                          {reg}
-                        </td>
-                        <td className={`px-6 py-4 text-center ${getHeatmapStyle(counts['Ag. Agenda'], 10)}`}>
-                          {counts['Ag. Agenda']}
-                        </td>
-                        <td className={`px-6 py-4 text-center ${getHeatmapStyle(counts['Veículo na Unidade'], 5)}`}>
-                          {counts['Veículo na Unidade']}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          {(() => {
-                            const acao = getAcaoSugerida(counts['maxAging']);
-                            return (
+                    {criticalItems.length > 0 ? (
+                      criticalItems.slice(0, 15).map(item => {
+                        const acao = getAcaoSugerida(item.aging);
+                        return (
+                          <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="px-4 py-3">
+                              <span className="font-mono text-xs font-bold text-slate-700">{item.id.split('-')[0] || item.id}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-xs font-semibold text-slate-600 uppercase">{item.fornecedor}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-xs text-slate-600">{item.regiao}</span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="text-xs text-slate-500 font-medium">
+                                {item.dataColeta || '-'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`text-xs font-bold px-2 py-1 rounded ${item.aging > 30 ? 'bg-red-100 text-red-600' : item.aging > 15 ? 'bg-orange-100 text-orange-600' : 'bg-amber-100 text-amber-600'}`}>
+                                {item.aging} dias
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
                               <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase border ${acao.style}`}>
                                 {acao.label}
                               </span>
-                            );
-                          })()}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center">
+                          <div className="flex flex-col items-center justify-center opacity-40">
+                            <Package className="w-8 h-8 mb-2" />
+                            <p className="text-xs font-bold uppercase tracking-widest">Tudo em dia!</p>
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
+              
+              {criticalItems.length > 15 && (
+                <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50">
+                  <p className="text-xs text-slate-500 text-center">
+                    Exibindo 15 de {criticalItems.length} itens críticos
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Side Alerts */}
           <div className="flex flex-col gap-6">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 z-0" />
-              
-              <div className="relative z-10">
-                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500" />
-                  Próximas Ações (Aging)
-                </h3>
-
-                <div className="space-y-4">
-                  {criticalItems.length > 0 ? (
-                    criticalItems.slice(0, 6).map(item => (
-                      <motion.div 
-                        key={item.id} 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-3 rounded-xl border border-slate-100 bg-slate-50 group hover:border-indigo-300 hover:bg-white hover:shadow-md transition-all cursor-crosshair relative"
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[120px]">{item.fornecedor}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${item.aging > 30 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
-                            {item.aging} DIAS
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-slate-700 truncate">{item.regiao}</p>
-                          <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-400 shrink-0" />
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-1 italic truncate">{item.status}</p>
-
-                        {/* Information Popover on Hover */}
-                        <div className="absolute right-full mr-4 top-0 z-[100] pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-x-1 translate-x-2">
-                          <div className="bg-slate-900/95 backdrop-blur-md text-white p-5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-72 border border-slate-700/50 ring-1 ring-white/10">
-                            <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-800">
-                              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Ficha da Unidade</p>
-                              <div className="bg-red-500/20 p-1.5 rounded-lg">
-                                <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-4">
-                              <div className="bg-slate-800/80 p-3 rounded-xl border border-white/5">
-                                <p className="text-[9px] text-slate-400 uppercase font-bold tracking-widest mb-1 text-center">Identificação do Container</p>
-                                <p className="text-base font-mono font-black text-white text-center tracking-wider">{item.id.split('-')[0]}</p>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <p className="text-[9px] text-slate-500 uppercase font-black tracking-wider">Origem</p>
-                                  <p className="text-xs font-bold text-slate-200 line-clamp-2 leading-tight">{item.fornecedor}</p>
-                                </div>
-                                <div className="space-y-1 text-right">
-                                  <p className="text-[9px] text-slate-500 uppercase font-black tracking-wider">Destino</p>
-                                  <p className="text-xs font-bold text-slate-200 line-clamp-2 leading-tight">{item.regiao}</p>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between gap-4 pt-2">
-                                <div className="flex-1 bg-red-500/10 p-2 rounded-lg border border-red-500/20">
-                                  <p className="text-[9px] text-red-400/80 uppercase font-black tracking-widest mb-0.5">Tempo Total</p>
-                                  <p className="text-xl font-black text-red-400 leading-none">{item.aging} <span className="text-[10px] font-medium opacity-60">DIAS</span></p>
-                                </div>
-                                <div className="flex-1 bg-indigo-500/10 p-2 rounded-lg border border-indigo-500/20 text-right">
-                                  <p className="text-[9px] text-indigo-400/80 uppercase font-black tracking-widest mb-0.5">Status</p>
-                                  <p className="text-[11px] font-bold text-indigo-200 leading-tight">{item.status}</p>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Arrow indicator */}
-                            <div className="absolute right-0 top-6 translate-x-1 w-3 h-3 bg-slate-900 rotate-45 border-r border-t border-slate-700/50"></div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))
-
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8 opacity-40">
-                      <Package className="w-8 h-8 mb-2" />
-                      <p className="text-xs font-bold uppercase tracking-widest text-center">Tudo em dia!</p>
-                    </div>
-                  )}
-                </div>
-
-                {criticalItems.length > 5 && (
-                  <button className="w-full mt-4 text-xs font-bold text-indigo-600 uppercase tracking-tighter hover:underline">
-                    Ver todos os {criticalItems.length} alertas
-                  </button>
-                )}
-              </div>
-            </div>
-
             {/* Aging Distribution */}
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl">
               <h3 className="text-sm font-bold opacity-60 uppercase mb-4 tracking-widest">Distribuição de Aging</h3>
@@ -659,6 +597,28 @@ export default function App() {
                   total={filteredData.length}
                   color="bg-red-400"
                 />
+              </div>
+            </div>
+
+            {/* Resumo por Status */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-indigo-600" />
+                Resumo por Status
+              </h3>
+              <div className="space-y-3">
+                {Object.entries(
+                  filteredData.reduce((acc, item) => {
+                    const cat = categorizeStatus(item.status);
+                    acc[cat] = (acc[cat] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>)
+                ).map(([status, count]) => (
+                  <div key={status} className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-slate-600">{status}</span>
+                    <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded">{count}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

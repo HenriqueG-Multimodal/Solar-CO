@@ -51,6 +51,42 @@ function getAgingBucket(aging: number): LogisticsItem['agingBucket'] {
 }
 
 /**
+ * Formata uma data para exibição (DD/MM/YYYY)
+ */
+function formatDateForDisplay(dateValue: any): string {
+  if (!dateValue || String(dateValue).trim() === '') return '';
+
+  let date: Date;
+
+  // Se for número (formato Excel serial date)
+  if (typeof dateValue === 'number') {
+    date = new Date((dateValue - 25569) * 86400 * 1000);
+  } else {
+    // Tenta tratar strings comuns (DD/MM/AAAA ou DD/MM)
+    const str = String(dateValue).trim();
+    const parts = str.split(/[\/\-.]/);
+    
+    if (parts.length >= 2) {
+      const day = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1;
+      const year = parts.length === 3 ? parseInt(parts[2]) : new Date().getFullYear();
+      const fullYear = year < 100 ? 2000 + year : year;
+      date = new Date(fullYear, month, day);
+    } else {
+      date = new Date(dateValue);
+    }
+  }
+
+  if (isNaN(date.getTime())) return '';
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
+}
+
+/**
  * Função para limpar e separar Fornecedor de Região
  */
 function extractFornecedorRegiao(rawOrigem: string, rawDestino: string = '') {
@@ -68,6 +104,7 @@ function processDetailedRow(row: any[]): Partial<LogisticsItem> | null {
   const rawDestino = String(row[4] || '').trim();
   const rawStatus = String(row[15] || '').trim();
   const rawDateChegada = row[11];
+  const rawDataColeta = row[12]; // Data de coleta geralmente está na coluna 12
 
   // Ignora se for o cabeçalho exato ou se a linha estiver totalmente vazia
   if (rawFornecedor.toLowerCase() === 'fornecedor' || (!rawFornecedor && !container)) return null;
@@ -91,13 +128,20 @@ function processDetailedRow(row: any[]): Partial<LogisticsItem> | null {
     agingBucket = getAgingBucket(aging);
   }
 
+  // Formata a data de coleta para exibição
+  let dataColeta = '';
+  if (rawDataColeta && String(rawDataColeta).trim() !== '') {
+    dataColeta = formatDateForDisplay(rawDataColeta);
+  }
+
   return {
     id: container || `${Math.random()}-${Date.now()}`,
     fornecedor, 
     regiao: regiao || 'DIVERSOS',
     status: rawStatus || 'Em Trânsito', 
     aging,
-    agingBucket
+    agingBucket,
+    dataColeta
   };
 }
 

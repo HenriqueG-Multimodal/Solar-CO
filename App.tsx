@@ -55,6 +55,7 @@ export default function App() {
     aging: dbItem.aging,
     agingBucket: dbItem.aging_bucket as LogisticsItem['agingBucket'],
     dataColeta: dbItem.data_coleta || undefined,
+    dataChegada: dbItem.data_chegada || undefined,
   });
 
   // Convert App format to DB format
@@ -66,6 +67,7 @@ export default function App() {
     aging: item.aging,
     aging_bucket: item.agingBucket,
     data_coleta: item.dataColeta || null,
+    data_chegada: item.dataChegada || null,
   });
 
   // Load data from Supabase on mount
@@ -585,7 +587,8 @@ export default function App() {
                       <th className="px-4 py-3 border-b">Container</th>
                       <th className="px-4 py-3 border-b">Fornecedor</th>
                       <th className="px-4 py-3 border-b">Destino</th>
-                      <th className="px-4 py-3 border-b text-center">Data Coleta</th>
+                      <th className="px-4 py-3 border-b text-center">Coleta</th>
+                      <th className="px-4 py-3 border-b text-center">Chegada</th>
                       <th className="px-4 py-3 border-b text-center">Aging</th>
                       <th className="px-4 py-3 border-b text-center">Ação</th>
                     </tr>
@@ -611,6 +614,11 @@ export default function App() {
                               </span>
                             </td>
                             <td className="px-4 py-3 text-center">
+                              <span className="text-xs text-slate-500 font-medium">
+                                {item.dataChegada || '-'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
                               <span className={`text-xs font-bold px-2 py-1 rounded ${item.aging > 30 ? 'bg-red-100 text-red-600' : item.aging > 15 ? 'bg-orange-100 text-orange-600' : 'bg-amber-100 text-amber-600'}`}>
                                 {item.aging} dias
                               </span>
@@ -625,7 +633,7 @@ export default function App() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center">
+                        <td colSpan={7} className="px-4 py-8 text-center">
                           <div className="flex flex-col items-center justify-center opacity-40">
                             <Package className="w-8 h-8 mb-2" />
                             <p className="text-xs font-bold uppercase tracking-widest">Tudo em dia!</p>

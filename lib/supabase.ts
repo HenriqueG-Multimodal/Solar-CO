@@ -14,6 +14,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface LogisticsItemDB {
   id: string;
+  nf: string | null;
   fornecedor: string;
   regiao: string;
   status: string;

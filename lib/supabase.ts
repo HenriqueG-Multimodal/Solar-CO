@@ -1,0 +1,88 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Suporta tanto variáveis Vite quanto Next.js/Vercel
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
+                    import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+                    (typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : '') || 
+                    '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
+                        import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+                        (typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY : '') ||
+                        '';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export interface LogisticsItemDB {
+  id: string;
+  fornecedor: string;
+  regiao: string;
+  status: string;
+  aging: number;
+  aging_bucket: string;
+  data_coleta: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Buscar todos os itens do banco
+export async function fetchLogisticsItems(): Promise<LogisticsItemDB[]> {
+  const { data, error } = await supabase
+    .from('logistics_items')
+    .select('*')
+    .order('aging', { ascending: false });
+
+  if (error) {
+    console.error('[v0] Error fetching logistics items:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// Salvar itens no banco (substitui todos os dados existentes)
+export async function saveLogisticsItems(items: LogisticsItemDB[]): Promise<boolean> {
+  try {
+    // Primeiro, deleta todos os itens existentes
+    const { error: deleteError } = await supabase
+      .from('logistics_items')
+      .delete()
+      .neq('id', ''); // Deleta tudo
+
+    if (deleteError) {
+      console.error('[v0] Error deleting old items:', deleteError);
+      return false;
+    }
+
+    // Depois, insere os novos itens
+    if (items.length > 0) {
+      const { error: insertError } = await supabase
+        .from('logistics_items')
+        .insert(items);
+
+      if (insertError) {
+        console.error('[v0] Error inserting items:', insertError);
+        return false;
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.error('[v0] Error saving logistics items:', err);
+    return false;
+  }
+}
+
+// Limpar todos os dados do banco
+export async function clearLogisticsItems(): Promise<boolean> {
+  const { error } = await supabase
+    .from('logistics_items')
+    .delete()
+    .neq('id', '');
+
+  if (error) {
+    console.error('[v0] Error clearing items:', error);
+    return false;
+  }
+
+  return true;
+}

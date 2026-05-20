@@ -112,6 +112,10 @@ function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<Lo
   // Ignora se for o cabeçalho exato ou se a linha estiver totalmente vazia
   if (rawFornecedor.toLowerCase() === 'fornecedor' || (!rawFornecedor && !container)) return null;
   
+  // Ignora se NF for o cabeçalho
+  const nfLower = nf.toLowerCase();
+  const nfValue = (nfLower === 'nf' || nfLower === 'nota fiscal' || nfLower === 'nota') ? undefined : nf;
+  
   // Ignora linhas de resumo/total do Excel
   if (rawFornecedor.toLowerCase().includes('total geral') || rawFornecedor.toLowerCase().includes('resumo')) return null;
 
@@ -145,7 +149,7 @@ function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<Lo
 
   return {
     id: container || `${Math.random()}-${Date.now()}`,
-    nf: nf || undefined,
+    nf: nfValue || undefined,
     fornecedor, 
     regiao: regiao || 'DIVERSOS',
     status: rawStatus || 'Em Trânsito', 

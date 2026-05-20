@@ -6,6 +6,7 @@ export interface LogisticsItem {
   aging: number;
   agingBucket: 'Até 15 dias' | '16 a 29 dias' | 'Até 60 dias';
   dataColeta?: string;
+  dataChegada?: string;
 }
 
 export const RAW_DATA: LogisticsItem[] = [

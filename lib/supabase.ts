@@ -20,6 +20,7 @@ export interface LogisticsItemDB {
   aging: number;
   aging_bucket: string;
   data_coleta: string | null;
+  data_chegada: string | null;
   created_at?: string;
   updated_at?: string;
 }

@@ -136,6 +136,12 @@ function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<Lo
     dataColeta = formatDateForDisplay(rawDataColeta);
   }
 
+  // Formata a data de chegada para exibição (coluna L, índice 11)
+  let dataChegada = '';
+  if (rawDateChegada && String(rawDateChegada).trim() !== '') {
+    dataChegada = formatDateForDisplay(rawDateChegada);
+  }
+
   return {
     id: container || `${Math.random()}-${Date.now()}`,
     fornecedor, 
@@ -143,7 +149,8 @@ function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<Lo
     status: rawStatus || 'Em Trânsito', 
     aging,
     agingBucket,
-    dataColeta
+    dataColeta,
+    dataChegada
   };
 }
 

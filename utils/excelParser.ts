@@ -4,7 +4,7 @@ import type { LogisticsItem } from '../data';
 /**
  * Função para calcular a diferença de dias entre hoje e uma data
  */
-function calculateAgingFromDate(dateValue: any): number {
+export function calculateAgingFromDate(dateValue: any): number {
   if (!dateValue || String(dateValue).trim() === '') return 0;
 
   let date: Date;
@@ -44,7 +44,7 @@ function calculateAgingFromDate(dateValue: any): number {
 /**
  * Helper function to calculate aging bucket
  */
-function getAgingBucket(aging: number): LogisticsItem['agingBucket'] {
+export function getAgingBucket(aging: number): LogisticsItem['agingBucket'] {
   if (aging >= 30) return 'Até 60 dias';
   if (aging >= 16) return '16 a 29 dias';
   return 'Até 15 dias';

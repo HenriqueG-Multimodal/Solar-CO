@@ -38,7 +38,7 @@ import {
 } from 'recharts';
 import Papa from 'papaparse';
 import { RAW_DATA, LogisticsItem } from './data';
-import { parseExcelPaste, parseCSVData, parseExcelFile } from './utils/excelParser';
+import { parseExcelPaste, parseCSVData, parseExcelFile, calculateAgingFromDate, getAgingBucket } from './utils/excelParser';
 import { fetchLogisticsItems, saveLogisticsItems, clearLogisticsItems, LogisticsItemDB } from './lib/supabase';
 
 export default function App() {
@@ -46,18 +46,26 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Convert DB format to App format
-  const dbToApp = (dbItem: LogisticsItemDB): LogisticsItem => ({
-    id: dbItem.id,
-    nf: dbItem.nf || undefined,
-    fornecedor: dbItem.fornecedor,
-    regiao: dbItem.regiao,
-    status: dbItem.status,
-    aging: dbItem.aging,
-    agingBucket: dbItem.aging_bucket as LogisticsItem['agingBucket'],
-    dataColeta: dbItem.data_coleta || undefined,
-    dataChegada: dbItem.data_chegada || undefined,
-  });
+  // Convert DB format to App format (recalculates aging dynamically)
+  const dbToApp = (dbItem: LogisticsItemDB): LogisticsItem => {
+    // Recalcula o aging baseado na data de chegada
+    const recalculatedAging = dbItem.data_chegada 
+      ? calculateAgingFromDate(dbItem.data_chegada) 
+      : dbItem.aging;
+    const recalculatedBucket = getAgingBucket(recalculatedAging);
+    
+    return {
+      id: dbItem.id,
+      nf: dbItem.nf || undefined,
+      fornecedor: dbItem.fornecedor,
+      regiao: dbItem.regiao,
+      status: dbItem.status,
+      aging: recalculatedAging,
+      agingBucket: recalculatedBucket,
+      dataColeta: dbItem.data_coleta || undefined,
+      dataChegada: dbItem.data_chegada || undefined,
+    };
+  };
 
   // Convert App format to DB format
   const appToDb = (item: LogisticsItem): LogisticsItemDB => ({

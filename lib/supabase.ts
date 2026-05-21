@@ -88,3 +88,36 @@ export async function clearLogisticsItems(): Promise<boolean> {
 
   return true;
 }
+
+// Salvar data da última importação
+export async function saveLastImportDate(): Promise<boolean> {
+  const { error } = await supabase
+    .from('app_settings')
+    .upsert({ 
+      key: 'last_import_date', 
+      value: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+
+  if (error) {
+    console.error('[v0] Error saving last import date:', error);
+    return false;
+  }
+
+  return true;
+}
+
+// Buscar data da última importação
+export async function fetchLastImportDate(): Promise<Date | null> {
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'last_import_date')
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return new Date(data.value);
+}

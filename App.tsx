@@ -38,7 +38,7 @@ import {
 import Papa from 'papaparse';
 import { RAW_DATA, LogisticsItem } from './data';
 import { parseExcelPaste, parseCSVData, parseExcelFile, calculateAgingFromDate, getAgingBucket } from './utils/excelParser';
-import { fetchLogisticsItems, saveLogisticsItems, LogisticsItemDB } from './lib/supabase';
+import { fetchLogisticsItems, saveLogisticsItems, saveLastImportDate, fetchLastImportDate, LogisticsItemDB } from './lib/supabase';
 
 export default function App() {
   const [data, setData] = useState<LogisticsItem[]>([]);
@@ -89,12 +89,15 @@ export default function App() {
     setIsLoading(true);
     try {
       const items = await fetchLogisticsItems();
+      const importDate = await fetchLastImportDate();
       if (items.length > 0) {
         setData(items.map(dbToApp));
       } else {
         setData(RAW_DATA);
       }
-      setLastUpdate(new Date());
+      if (importDate) {
+        setLastUpdate(importDate);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       setData(RAW_DATA);
@@ -109,7 +112,9 @@ export default function App() {
     try {
       const dbItems = newData.map(appToDb);
       await saveLogisticsItems(dbItems);
+      await saveLastImportDate();
       setData(newData);
+      setLastUpdate(new Date());
     } catch (error) {
       console.error('Error saving data:', error);
     } finally {

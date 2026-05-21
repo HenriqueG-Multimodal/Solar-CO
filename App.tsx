@@ -18,8 +18,7 @@ import {
   PieChart as PieChartIcon,
   TrendingUp,
   LayoutDashboard,
-  Loader2,
-  RefreshCw
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -39,12 +38,13 @@ import {
 import Papa from 'papaparse';
 import { RAW_DATA, LogisticsItem } from './data';
 import { parseExcelPaste, parseCSVData, parseExcelFile, calculateAgingFromDate, getAgingBucket } from './utils/excelParser';
-import { fetchLogisticsItems, saveLogisticsItems, clearLogisticsItems, LogisticsItemDB } from './lib/supabase';
+import { fetchLogisticsItems, saveLogisticsItems, LogisticsItemDB } from './lib/supabase';
 
 export default function App() {
   const [data, setData] = useState<LogisticsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   
   // Convert DB format to App format (recalculates aging dynamically)
   const dbToApp = (dbItem: LogisticsItemDB): LogisticsItem => {
@@ -94,6 +94,7 @@ export default function App() {
       } else {
         setData(RAW_DATA);
       }
+      setLastUpdate(new Date());
     } catch (error) {
       console.error('Error loading data:', error);
       setData(RAW_DATA);
@@ -514,28 +515,11 @@ export default function App() {
             Limpar filtros
           </button>
 
-          <button 
-            onClick={async () => { 
-              if (confirm('Deseja limpar os dados salvos e voltar aos dados de exemplo?')) {
-                await clearLogisticsItems();
-                await saveData(RAW_DATA);
-                setSelectedFornecedor('Todos');
-                setSelectedRegiao('Todos');
-              }
-            }}
-            className="text-xs font-medium text-red-500 hover:text-red-700"
-          >
-            Resetar dados
-          </button>
-
-          <button 
-            onClick={loadData}
-            disabled={isLoading}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-          >
-            <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
+          {lastUpdate && (
+            <span className="text-xs text-slate-500">
+              Atualizado em: {lastUpdate.toLocaleDateString('pt-BR')} {lastUpdate.toLocaleTimeString('pt-BR')}
+            </span>
+          )}
         </div>
 
         {/* Pipeline / Funil de Chegada */}

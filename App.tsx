@@ -777,8 +777,9 @@ export default function App() {
                     <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={16}>
                       <LabelList 
                         dataKey="value" 
-                        position="right" 
-                        style={{ fontSize: 9, fontWeight: 'bold', fill: '#334155' }}
+                        position="insideRight" 
+                        offset={-5}
+                        style={{ fontSize: 9, fontWeight: 'bold', fill: '#ffffff' }}
                       />
                     </Bar>
                   </BarChart>

@@ -779,7 +779,14 @@ export default function App() {
                         dataKey="value" 
                         position="insideRight" 
                         offset={-5}
-                        style={{ fontSize: 9, fontWeight: 'bold', fill: '#ffffff' }}
+                        style={{ 
+                          fontSize: 9, 
+                          fontWeight: 'bold', 
+                          fill: '#ffffff',
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          padding: '2px 4px',
+                          borderRadius: '3px'
+                        }}
                       />
                     </Bar>
                   </BarChart>

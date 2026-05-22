@@ -32,13 +32,43 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend,
-  LabelList
+  Legend
 } from 'recharts';
 import Papa from 'papaparse';
 import { RAW_DATA, LogisticsItem } from './data';
 import { parseExcelPaste, parseCSVData, parseExcelFile, calculateAgingFromDate, getAgingBucket } from './utils/excelParser';
 import { fetchLogisticsItems, saveLogisticsItems, saveLastImportDate, fetchLastImportDate, LogisticsItemDB } from './lib/supabase';
+
+// Componente customizado para renderizar labels com fundo
+const CustomBarLabel = (props: any) => {
+  const { x, y, width, height, value } = props;
+  const isPositive = width > 0;
+  
+  return (
+    <g>
+      {/* Fundo semitransparente */}
+      <rect
+        x={isPositive ? x + width - 40 : x + width}
+        y={y + height / 2 - 8}
+        width={40}
+        height={16}
+        fill="rgba(0, 0, 0, 0.4)"
+        rx="3"
+      />
+      {/* Texto branco */}
+      <text
+        x={isPositive ? x + width - 20 : x + width + 20}
+        y={y + height / 2 + 4}
+        textAnchor={isPositive ? 'middle' : 'start'}
+        fill="#ffffff"
+        fontSize={9}
+        fontWeight="bold"
+      >
+        {value}
+      </text>
+    </g>
+  );
+};
 
 export default function App() {
   const [data, setData] = useState<LogisticsItem[]>([]);
@@ -774,21 +804,8 @@ export default function App() {
                       cursor={{ fill: '#f8fafc' }}
                       contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={16}>
-                      <LabelList 
-                        dataKey="value" 
-                        position="insideRight" 
-                        offset={-5}
-                        style={{ 
-                          fontSize: 9, 
-                          fontWeight: 'bold', 
-                          fill: '#ffffff',
-                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                          padding: '2px 4px',
-                          borderRadius: '3px'
-                        }}
-                      />
-                    </Bar>
+                    <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={16} label={<CustomBarLabel />} />
+                    
                   </BarChart>
                 </ResponsiveContainer>
               </div>

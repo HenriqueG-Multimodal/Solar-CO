@@ -48,16 +48,16 @@ const CustomBarLabel = (props: any) => {
     <g>
       {/* Fundo semitransparente */}
       <rect
-        x={isPositive ? x + width - 40 : x + width}
+        x={isPositive ? x + width - 50 : x + width}
         y={y + height / 2 - 8}
-        width={40}
+        width={48}
         height={16}
         fill="rgba(0, 0, 0, 0.4)"
         rx="3"
       />
       {/* Texto branco */}
       <text
-        x={isPositive ? x + width - 20 : x + width + 20}
+        x={isPositive ? x + width - 27 : x + width + 20}
         y={y + height / 2 + 4}
         textAnchor={isPositive ? 'middle' : 'start'}
         fill="#ffffff"

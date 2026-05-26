@@ -42,32 +42,64 @@ import { fetchLogisticsItems, saveLogisticsItems, saveLastImportDate, fetchLastI
 // Componente customizado para renderizar labels com fundo
 const CustomBarLabel = (props: any) => {
   const { x, y, width, height, value } = props;
-  const isPositive = width > 0;
   
-  return (
-    <g>
-      {/* Fundo semitransparente */}
-      <rect
-        x={isPositive ? x + width - 50 : x + width}
-        y={y + height / 2 - 8}
-        width={48}
-        height={16}
-        fill="rgba(0, 0, 0, 0.4)"
-        rx="3"
-      />
-      {/* Texto branco */}
-      <text
-        x={isPositive ? x + width - 27 : x + width + 20}
-        y={y + height / 2 + 4}
-        textAnchor={isPositive ? 'middle' : 'start'}
-        fill="#ffffff"
-        fontSize={9}
-        fontWeight="bold"
-      >
-        {value}
-      </text>
-    </g>
-  );
+  // Se o valor for maior que 100, posiciona dentro da barra
+  // Senão, posiciona ao lado da barra
+  const isLargeValue = value > 100;
+  
+  if (isLargeValue) {
+    // Dentro da barra, próximo ao final
+    return (
+      <g>
+        {/* Fundo semitransparente dentro da barra */}
+        <rect
+          x={x + width - 48}
+          y={y + height / 2 - 8}
+          width={45}
+          height={16}
+          fill="rgba(0, 0, 0, 0.5)"
+          rx="3"
+        />
+        {/* Texto branco */}
+        <text
+          x={x + width - 26}
+          y={y + height / 2 + 4}
+          textAnchor="middle"
+          fill="#ffffff"
+          fontSize={9}
+          fontWeight="bold"
+        >
+          {value}
+        </text>
+      </g>
+    );
+  } else {
+    // Ao lado da barra, à direita
+    return (
+      <g>
+        {/* Fundo semitransparente fora da barra */}
+        <rect
+          x={x + width + 5}
+          y={y + height / 2 - 8}
+          width={45}
+          height={16}
+          fill="rgba(0, 0, 0, 0.3)"
+          rx="3"
+        />
+        {/* Texto branco */}
+        <text
+          x={x + width + 27}
+          y={y + height / 2 + 4}
+          textAnchor="middle"
+          fill="#ffffff"
+          fontSize={9}
+          fontWeight="bold"
+        >
+          {value}
+        </text>
+      </g>
+    );
+  }
 };
 
 export default function App() {

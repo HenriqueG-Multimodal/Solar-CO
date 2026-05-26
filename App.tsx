@@ -859,7 +859,6 @@ export default function App() {
                     <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b">
                       <th className="px-8 py-4">Fornecedor</th>
                       <th className="px-8 py-4 text-center">Volume Total</th>
-                      <th className="px-8 py-4 text-center">Aging Médio</th>
                       <th className="px-8 py-4 text-center">Itens Críticos</th>
                       <th className="px-8 py-4 text-center">Status Saúde</th>
                     </tr>
@@ -869,11 +868,6 @@ export default function App() {
                       <tr key={sup.name} className="hover:bg-slate-50 transition-colors">
                         <td className="px-8 py-4 text-sm font-bold text-slate-700">{sup.name}</td>
                         <td className="px-8 py-4 text-center text-sm font-medium text-slate-600">{sup.total}</td>
-                        <td className="px-8 py-4 text-center">
-                          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${sup.agingAvg > 25 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                            {sup.agingAvg} dias
-                          </span>
-                        </td>
                         <td className="px-8 py-4 text-center">
                            <span className={`text-xs font-bold ${sup.critical > 0 ? 'text-red-500' : 'text-slate-400'}`}>
                             {sup.critical}

@@ -4,6 +4,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
 const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
 
+console.log('[v0] Supabase URL:', supabaseUrl ? 'Configurado' : 'VAZIO');
+console.log('[v0] Supabase Key:', supabaseAnonKey ? 'Configurado' : 'VAZIO');
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('[v0] Variáveis de ambiente do Supabase não estão configuradas!');
+  console.error('[v0] VITE_SUPABASE_URL:', supabaseUrl);
+  console.error('[v0] VITE_SUPABASE_ANON_KEY:', supabaseAnonKey);
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface LogisticsItemDB {

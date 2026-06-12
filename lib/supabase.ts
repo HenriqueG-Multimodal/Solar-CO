@@ -1,14 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Suporta tanto variáveis Vite quanto Next.js/Vercel
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
-                    import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
-                    (typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : '') || 
-                    '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
-                        import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-                        (typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY : '') ||
-                        '';
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

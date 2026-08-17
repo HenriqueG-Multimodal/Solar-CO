@@ -54,13 +54,13 @@ export async function fetchLogisticsItems(): Promise<LogisticsItemDB[]> {
 export async function saveLogisticsItems(items: LogisticsItemDB[]): Promise<boolean> {
   if (items.length === 0) return false;
 
-  const { error: upsertError } = await supabase
+  const { error: insertError } = await supabase
     .from('logistics_items')
-    .upsert(items, { onConflict: 'id' });
+    .insert(items);
 
-  if (upsertError) {
-    console.error('[v0] Error upserting items:', upsertError);
-    throw new Error(`Não foi possível salvar a planilha: ${upsertError.message}`);
+  if (insertError) {
+    console.error('[v0] Error inserting items:', insertError);
+    throw new Error(`Não foi possível salvar a planilha: ${insertError.message}`);
   }
 
   const importedIds = items.map((item) => item.id);

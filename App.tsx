@@ -162,7 +162,8 @@ export default function App() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      setData(RAW_DATA);
+      setData([]);
+      alert(error instanceof Error ? error.message : 'Não foi possível carregar os dados salvos.');
     } finally {
       setIsLoading(false);
     }

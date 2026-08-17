@@ -148,7 +148,7 @@ function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<Lo
   }
 
   return {
-    id: container || `${Math.random()}-${Date.now()}`,
+    id: container || `${fornecedor}-${regiao}-${nfValue || 'sem-nf'}-${rawDateChegada || 'sem-data'}`.toLowerCase().replace(/\s+/g, '-'),
     nf: nfValue || undefined,
     fornecedor, 
     regiao: regiao || 'DIVERSOS',
@@ -189,7 +189,7 @@ function addItems(list: Partial<LogisticsItem>[], f: string, r: string, s: strin
   const safeQty = Math.min(qty, 500); 
   for (let i = 0; i < safeQty; i++) {
     list.push({
-      id: `${f}-${r}-${s}-${b}-${i}-${Math.random()}`,
+      id: `${f}-${r}-${s}-${b}-${i}`.toLowerCase().replace(/\s+/g, '-'),
       fornecedor: f,
       regiao: r,
       status: s,

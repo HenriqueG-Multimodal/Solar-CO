@@ -169,7 +169,13 @@ export default function App() {
   const saveData = async (newData: LogisticsItem[]): Promise<boolean> => {
     setIsSaving(true);
     try {
-      const dbItems = newData.map(appToDb);
+      const importToken = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const dbItems = newData.map((item, index) => ({
+        ...appToDb(item),
+        id: `${importToken}-${index}`,
+      }));
       const saved = await saveLogisticsItems(dbItems);
       const savedImportDate = await saveLastImportDate();
 

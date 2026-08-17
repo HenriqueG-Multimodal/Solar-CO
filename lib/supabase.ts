@@ -1,16 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Suporta tanto variáveis Vite quanto Next.js/Vercel
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
+// O build publicado usa as variáveis NEXT_PUBLIC_*; o Vite local usa VITE_*.
+const env = import.meta.env as ImportMetaEnv & {
+  VITE_SUPABASE_URL?: string;
+  VITE_SUPABASE_ANON_KEY?: string;
+  NEXT_PUBLIC_SUPABASE_URL?: string;
+  NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
+};
 
-console.log('[v0] Supabase URL:', supabaseUrl ? 'Configurado' : 'VAZIO');
-console.log('[v0] Supabase Key:', supabaseAnonKey ? 'Configurado' : 'VAZIO');
+const supabaseUrl = env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('[v0] Variáveis de ambiente do Supabase não estão configuradas!');
-  console.error('[v0] VITE_SUPABASE_URL:', supabaseUrl);
-  console.error('[v0] VITE_SUPABASE_ANON_KEY:', supabaseAnonKey);
+  throw new Error('As variáveis públicas do Supabase não estão configuradas.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -44,37 +46,44 @@ export async function fetchLogisticsItems(): Promise<LogisticsItemDB[]> {
   return data || [];
 }
 
-// Salvar itens no banco (substitui todos os dados existentes)
+// Salva a nova importação sem apagar a base antes de confirmar a gravação.
 export async function saveLogisticsItems(items: LogisticsItemDB[]): Promise<boolean> {
-  try {
-    // Primeiro, deleta todos os itens existentes
+  if (items.length === 0) return false;
+
+  const { error: upsertError } = await supabase
+    .from('logistics_items')
+    .upsert(items, { onConflict: 'id' });
+
+  if (upsertError) {
+    console.error('[v0] Error upserting items:', upsertError);
+    throw new Error(`Não foi possível salvar a planilha: ${upsertError.message}`);
+  }
+
+  const importedIds = items.map((item) => item.id);
+  const { data: currentItems, error: readError } = await supabase
+    .from('logistics_items')
+    .select('id');
+
+  if (readError) {
+    throw new Error(`A planilha foi gravada, mas não pôde ser confirmada: ${readError.message}`);
+  }
+
+  const staleIds = (currentItems || [])
+    .map((item) => item.id as string)
+    .filter((id) => !importedIds.includes(id));
+
+  if (staleIds.length > 0) {
     const { error: deleteError } = await supabase
       .from('logistics_items')
       .delete()
-      .neq('id', ''); // Deleta tudo
+      .in('id', staleIds);
 
     if (deleteError) {
-      console.error('[v0] Error deleting old items:', deleteError);
-      return false;
+      throw new Error(`A planilha foi gravada, mas os registros antigos não foram removidos: ${deleteError.message}`);
     }
-
-    // Depois, insere os novos itens
-    if (items.length > 0) {
-      const { error: insertError } = await supabase
-        .from('logistics_items')
-        .insert(items);
-
-      if (insertError) {
-        console.error('[v0] Error inserting items:', insertError);
-        return false;
-      }
-    }
-
-    return true;
-  } catch (err) {
-    console.error('[v0] Error saving logistics items:', err);
-    return false;
   }
+
+  return true;
 }
 
 // Limpar todos os dados do banco

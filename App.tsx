@@ -168,17 +168,30 @@ export default function App() {
     }
   };
 
-  // Save data to Supabase
-  const saveData = async (newData: LogisticsItem[]) => {
+  // Save data to Supabase and confirm the persisted result before updating the UI.
+  const saveData = async (newData: LogisticsItem[]): Promise<boolean> => {
     setIsSaving(true);
     try {
       const dbItems = newData.map(appToDb);
-      await saveLogisticsItems(dbItems);
-      await saveLastImportDate();
-      setData(newData);
+      const saved = await saveLogisticsItems(dbItems);
+      const savedImportDate = await saveLastImportDate();
+
+      if (!saved || !savedImportDate) {
+        throw new Error('O Supabase não confirmou a gravação da importação.');
+      }
+
+      const persistedItems = await fetchLogisticsItems();
+      if (persistedItems.length !== dbItems.length) {
+        throw new Error('A quantidade de registros confirmada no banco é diferente da planilha.');
+      }
+
+      setData(persistedItems.map(dbToApp));
       setLastUpdate(new Date());
+      return true;
     } catch (error) {
       console.error('Error saving data:', error);
+      alert(error instanceof Error ? error.message : 'Não foi possível salvar a planilha.');
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -317,12 +330,14 @@ export default function App() {
     if (!pasteData.trim()) return;
     const parsed = parseExcelPaste(pasteData);
     if (parsed.length > 0) {
-      await saveData(parsed as LogisticsItem[]);
+    const saved = await saveData(parsed as LogisticsItem[]);
+    if (saved) {
       setShowImport(false);
       setPasteData('');
       setSelectedFornecedor('Todos');
       setSelectedRegiao('Todos');
-      alert(`${parsed.length} unidades carregadas com sucesso!`);
+      alert(`${parsed.length} unidades carregadas e salvas com sucesso!`);
+    }
     } else {
       alert("Nenhum dado válido encontrado. Certifique-se de copiar as colunas corretamente do Excel.");
     }
@@ -339,11 +354,13 @@ export default function App() {
         complete: async (results) => {
           const parsed = parseCSVData(results);
           if (parsed.length > 0) {
-            await saveData(parsed as LogisticsItem[]); 
-            setShowImport(false);
-            setSelectedFornecedor('Todos');
-            setSelectedRegiao('Todos');
-            alert(`${parsed.length} unidades carregadas do CSV!`);
+        const saved = await saveData(parsed as LogisticsItem[]);
+        if (saved) {
+          setShowImport(false);
+          setSelectedFornecedor('Todos');
+          setSelectedRegiao('Todos');
+          alert(`${parsed.length} unidades carregadas e salvas do CSV!`);
+        }
           } else {
             alert("Nenhum dado válido encontrado no CSV.");
           }
@@ -361,11 +378,13 @@ export default function App() {
           try {
             const parsed = parseExcelFile(buffer);
             if (parsed.length > 0) {
-              await saveData(parsed as LogisticsItem[]);
-              setShowImport(false);
-              setSelectedFornecedor('Todos');
-              setSelectedRegiao('Todos');
-              alert(`${parsed.length} unidades carregadas do Excel!`);
+          const saved = await saveData(parsed as LogisticsItem[]);
+          if (saved) {
+            setShowImport(false);
+            setSelectedFornecedor('Todos');
+            setSelectedRegiao('Todos');
+            alert(`${parsed.length} unidades carregadas e salvas do Excel!`);
+          }
             } else {
               alert("Nenhum dado válido encontrado no Excel. Verifique o mapeamento das colunas.");
             }

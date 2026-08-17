@@ -35,7 +35,7 @@ import {
   Legend
 } from 'recharts';
 import Papa from 'papaparse';
-import { RAW_DATA, LogisticsItem } from './data';
+import { LogisticsItem } from './data';
 import { parseExcelPaste, parseCSVData, parseExcelFile, calculateAgingFromDate, getAgingBucket } from './utils/excelParser';
 import { fetchLogisticsItems, saveLogisticsItems, saveLastImportDate, fetchLastImportDate, LogisticsItemDB } from './lib/supabase';
 
@@ -152,11 +152,7 @@ export default function App() {
     try {
       const items = await fetchLogisticsItems();
       const importDate = await fetchLastImportDate();
-      if (items.length > 0) {
-        setData(items.map(dbToApp));
-      } else {
-        setData(RAW_DATA);
-      }
+      setData(items.map(dbToApp));
       if (importDate) {
         setLastUpdate(importDate);
       }

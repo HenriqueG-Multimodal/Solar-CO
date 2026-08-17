@@ -117,7 +117,7 @@ export async function saveLastImportDate(): Promise<boolean> {
 
   if (error) {
     console.error('[v0] Error saving last import date:', error);
-    return false;
+    throw new Error(`Não foi possível confirmar a importação: ${error.message}`);
   }
 
   return true;

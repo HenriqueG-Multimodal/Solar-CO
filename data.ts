@@ -1,5 +1,6 @@
 export interface LogisticsItem {
   id: string;
+  container?: string;
   nf?: string;
   fornecedor: string;
   regiao: string;

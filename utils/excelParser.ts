@@ -95,12 +95,24 @@ function extractFornecedorRegiao(rawOrigem: string, rawDestino: string = '') {
   return { fornecedor, regiao };
 }
 
+/** Extrai somente o código operacional do contêiner, ignorando prefixos e observações. */
+export function extractContainerCode(value: unknown): string {
+  const text = String(value ?? '').trim();
+  if (!text) return '';
+
+  const codePattern = /\b[A-Z]{4}\d{7}\b/i;
+  const match = text.match(codePattern);
+  return match?.[0]?.toUpperCase() || '';
+}
+
 /**
  * Processa uma linha individual (Formato Detalhado)
  */
-function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<LogisticsItem> | null {
+function processDetailedRow(row: any[], dataColetaIndex: number = 7, containerIndex: number = 1, observationIndex: number = -1): Partial<LogisticsItem> | null {
   const rawFornecedor = String(row[0] || '').trim();
-  const container = String(row[1] || '').trim();
+  const rawContainer = String(row[containerIndex] || '').trim();
+  const rawObservation = observationIndex >= 0 ? String(row[observationIndex] || '').trim() : '';
+  const container = extractContainerCode(rawContainer) || extractContainerCode(rawObservation);
   const nf = String(row[3] || '').trim(); // Coluna D (índice 3) = NF
   const rawDestino = String(row[4] || '').trim();
   const rawStatus = String(row[15] || '').trim();
@@ -148,7 +160,8 @@ function processDetailedRow(row: any[], dataColetaIndex: number = 7): Partial<Lo
   }
 
   return {
-    id: container || `${fornecedor}-${regiao}-${nfValue || 'sem-nf'}-${rawDateChegada || 'sem-data'}`.toLowerCase().replace(/\s+/g, '-'),
+    id: `${fornecedor}-${regiao}-${nfValue || 'sem-nf'}-${rawDateChegada || 'sem-data'}`.toLowerCase().replace(/\s+/g, '-'),
+    container,
     nf: nfValue || undefined,
     fornecedor, 
     regiao: regiao || 'DIVERSOS',
@@ -219,14 +232,15 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
     const headerString = String(headerRow.join('') || '').toLowerCase();
     const isDetailed = rows.length > 0 && (headerRow.length > 10 || headerString.includes('status') || headerString.includes('container') || headerString.includes('booking'));
 
-    // Coluna H (índice 7) = COLETADO - também detecta dinamicamente se houver cabeçalho diferente
-    let dataColetaIndex = 7; // Padrão: coluna H
+    // Detecta as colunas pelo cabeçalho, mantendo os índices padrão da planilha detalhada.
+    let dataColetaIndex = 7;
+    let containerIndex = 1;
+    let observationIndex = -1;
     for (let i = 0; i < headerRow.length; i++) {
       const colName = String(headerRow[i]).toLowerCase().trim();
-      if (colName === 'coletado' || (colName.includes('data') && colName.includes('coleta'))) {
-        dataColetaIndex = i;
-        break;
-      }
+      if (colName === 'coletado' || (colName.includes('data') && colName.includes('coleta'))) dataColetaIndex = i;
+      if (colName.includes('container') || colName.includes('conteiner')) containerIndex = i;
+      if (colName.includes('observa')) observationIndex = i;
     }
 
     rows.forEach((row) => {
@@ -238,7 +252,7 @@ export function parseExcelFile(buffer: ArrayBuffer): Partial<LogisticsItem>[] {
       if (firstCell.includes('total geral')) return;
 
       if (isDetailed) {
-        const item = processDetailedRow(row, dataColetaIndex);
+        const item = processDetailedRow(row, dataColetaIndex, containerIndex, observationIndex);
         if (item) {
           // Lógica de Preenchimento para Células Mescladas
           if (item.fornecedor === '') {
@@ -273,8 +287,11 @@ export function parseExcelPaste(text: string): Partial<LogisticsItem>[] {
   
   if (lines.length === 0) return [];
 
+  const firstCells = lines[0].split('\t');
   const firstLine = lines[0].toLowerCase();
-  const isDetailed = firstLine.split('\t').length > 10 || firstLine.includes('status') || firstLine.includes('container');
+  const isDetailed = firstCells.length > 10 || firstLine.includes('status') || firstLine.includes('container');
+  const containerIndex = firstCells.findIndex((cell) => /container|conteiner/i.test(cell)) >= 0 ? firstCells.findIndex((cell) => /container|conteiner/i.test(cell)) : 1;
+  const observationIndex = firstCells.findIndex((cell) => /observa/i.test(cell));
 
   lines.forEach((line) => {
     const cells = line.split('\t');
@@ -285,7 +302,7 @@ export function parseExcelPaste(text: string): Partial<LogisticsItem>[] {
     if (firstCell.includes('total geral')) return;
 
     if (isDetailed) {
-      const item = processDetailedRow(cells);
+        const item = processDetailedRow(cells, 7, containerIndex, observationIndex);
       if (item) {
         if (item.fornecedor === '') {
           item.fornecedor = lastSeenFornecedor || 'DIVERSOS';

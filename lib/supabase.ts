@@ -6,10 +6,14 @@ const env = import.meta.env as ImportMetaEnv & {
   VITE_SUPABASE_ANON_KEY?: string;
   NEXT_PUBLIC_SUPABASE_URL?: string;
   NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
+  SUPABASE_URL?: string;
+  SUPABASE_ANON_KEY?: string;
+  SUPABASE_PUBLISHABLE_KEY?: string;
 };
 
-const supabaseUrl = env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL || '';
+const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || env.SUPABASE_PUBLISHABLE_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('As variáveis públicas do Supabase não estão configuradas.');
@@ -40,7 +44,7 @@ export async function fetchLogisticsItems(): Promise<LogisticsItemDB[]> {
 
   if (error) {
     console.error('[v0] Error fetching logistics items:', error);
-    return [];
+    throw new Error(`Não foi possível carregar os dados salvos: ${error.message}`);
   }
 
   return data || [];
@@ -113,7 +117,7 @@ export async function saveLastImportDate(): Promise<boolean> {
 
   if (error) {
     console.error('[v0] Error saving last import date:', error);
-    return false;
+    throw new Error(`Não foi possível confirmar a importação: ${error.message}`);
   }
 
   return true;

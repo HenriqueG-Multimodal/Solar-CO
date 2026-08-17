@@ -118,6 +118,7 @@ export default function App() {
     
     return {
       id: dbItem.id,
+      container: dbItem.container || '',
       nf: dbItem.nf || undefined,
       fornecedor: dbItem.fornecedor,
       regiao: dbItem.regiao,
@@ -132,6 +133,7 @@ export default function App() {
   // Convert App format to DB format
   const appToDb = (item: LogisticsItem): LogisticsItemDB => ({
     id: item.id,
+    container: item.container || null,
     nf: item.nf || null,
     fornecedor: item.fornecedor,
     regiao: item.regiao,
@@ -684,7 +686,7 @@ export default function App() {
                         return (
                           <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                             <td className="px-4 py-3">
-                              <span className="font-mono text-xs font-bold text-slate-700">{item.id.split('-')[0] || item.id}</span>
+                              <span className="font-mono text-xs font-bold text-slate-700">{item.container || '-'}</span>
                             </td>
                             <td className="px-4 py-3">
                               <span className="text-xs text-slate-600">{item.nf || '-'}</span>
@@ -948,7 +950,7 @@ export default function App() {
                   {filteredData.slice(0, 50).map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-8 py-4 text-xs font-mono font-medium text-slate-400">
-                        {item.id.split('-')[0]}
+                        {item.container || '-'}
                       </td>
                       <td className="px-8 py-4 text-xs text-slate-500">
                         {item.nf || '-'}
